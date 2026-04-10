@@ -248,6 +248,7 @@ func main() {
 	demonstrateScheduler()
 	demonstrateSignalValidation()
 	demonstrateECUServer() 
+	//demonstrateSensorModel()
 
 	fmt.Println("\n========================================")
 	fmt.Println("  Done")

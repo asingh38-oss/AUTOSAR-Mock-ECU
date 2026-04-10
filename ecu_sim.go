@@ -247,6 +247,7 @@ func main() {
 	demonstrateDriveMode()
 	demonstrateScheduler()
 	demonstrateSignalValidation()
+	demonstrateECUServer() 
 
 	fmt.Println("\n========================================")
 	fmt.Println("  Done")

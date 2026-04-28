@@ -24,20 +24,25 @@ func (s *ECUServer) UpdateReading(r SensorReading) {
 	s.readings[r.SignalName] = r
 }
 
-func (s *ECUServer) handleSensors(w http.ResponseWriter, r *http.Request) {
-	name := strings.TrimPrefix(r.URL.Path, "/sensors/")
+func (s *ECUServer) handleAllSensors(w http.ResponseWriter, r *http.Request) {
+	all := make([]SensorReading, 0, len(s.readings))
+	for _, v := range s.readings {
+		all = append(all, v)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(all)
+}
 
-	if name == "" || name == "sensors" {
-		all := make([]SensorReading, 0, len(s.readings))
-		for _, v := range s.readings {
-			all = append(all, v)
-		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(all)
+func (s *ECUServer) handleSingleSensor(w http.ResponseWriter, r *http.Request) {
+	name := strings.TrimPrefix(r.URL.Path, "/sensors/")
+	name = strings.ToUpper(strings.TrimSpace(name))
+
+	if name == "" {
+		s.handleAllSensors(w, r)
 		return
 	}
 
-	reading, ok := s.readings[strings.ToUpper(name)]
+	reading, ok := s.readings[name]
 	if !ok {
 		http.Error(w, "signal not found", http.StatusNotFound)
 		return
@@ -73,8 +78,8 @@ func demonstrateECUServer() {
 		logger.Validate(r.SignalName, r.Value, r.Unit)
 	}
 
-	http.HandleFunc("/sensors/", server.handleSensors)
-	http.HandleFunc("/sensors", server.handleSensors)
+	http.HandleFunc("/sensors", server.handleAllSensors)
+	http.HandleFunc("/sensors/", server.handleSingleSensor)
 	http.HandleFunc("/faults", server.handleFaults)
 
 	fmt.Println("\n  Routes:")
